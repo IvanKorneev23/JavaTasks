@@ -1,0 +1,127 @@
+package com.company;
+
+import java.io.*;
+import java.util.Scanner;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in); // сканер для того, чтобы считать данные
+        Auth auth = new Auth(); // ауф, который работает на стороне пользователя
+        System.out.print("регистрация (+) / логин (-): ");
+        String inp = input.next();
+        System.out.print("логин (почта): ");
+        String login = input.next();
+        System.out.print("пароль: ");
+        String password = input.next();
+        if (inp.equals("+")){
+            auth.login(login, password); // логиним
+        } else {
+            auth.register(login, password); // регаем
+        }
+    }
+}
+
+class Auth {
+    String chekEmail = "^\\w+\\.?\\w+?@\\w+\\.\\w*\\.*\\w*"; // регулярка для почты
+    void login(String login, String password) { // логин метод
+        if (login.matches(this.chekEmail)) {
+            Server server = new Server();
+            server.auth(login, password);
+        } else {
+            throw new IllegalArgumentException("Логин не подошел"); // выкидываем ошибку, что логин не верный
+        }
+    }
+
+    void register(String login, String password) { // регистрация (метод)
+        if (login.matches(this.chekEmail)) {
+            Server server = new Server();
+            if (server.verify(login, password)) { // проверяем, есть ли этот пользователь уже в нашей базе данных
+                System.out.println("Вы уже зарегистрированы");
+            } else {
+                server.writeData(login, password); // записываем данные в файл
+                System.out.println("Вы успешно зарегистрировались");
+            }
+        }
+    }
+}
+
+class Server {
+    private final char[] hexArray = "0123456789ABCDEF".toCharArray(); // создаем hexArray чтобы было по чему создать hash
+
+    void auth(String arg, String pwd) {
+        if (verify(arg, pwd)) {
+            System.out.println("Auth");
+        } else {
+            System.out.println("Попробуйте еще раз");
+        }
+    }
+
+    boolean verify(String login, String password){ // метод проверки нашего пользователя в базе данных
+        BufferedReader buffR = null;
+        String passwordUser = "";
+        try {
+            passwordUser = generateHash(password); // генерим хеш с паролем
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        try {
+            buffR = new BufferedReader(new FileReader("data.txt")); // читаем наш файл
+            String line; // создали линию котрая с каждей итерацией будет меняться
+            while ((line = buffR.readLine()) != null) {
+                if (login.equals(line.split(" - ")[0]) && passwordUser.equals(line.split(" - ")[1])){ // делаем магию и получаем наш логин если имеется
+                    return true;
+                }
+            } // далее ловим ошибки ну и в принципе все понятно
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            try {
+                buffR.close();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+        return false;
+    }
+
+    String coder(String pwd) { // это шифование пароля
+        String password = null;
+        try {
+            password = generateHash(pwd);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return password;
+    }
+
+    private String generateHash(String password) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256"); // исспользуем хешировние
+        digest.reset();
+        byte[] hash = digest.digest(password.getBytes()); // перевод в байты и туду в цифры
+        return bytesToStringHex(hash); // вернем байт стринг
+    }
+
+     String bytesToStringHex(byte[] hash) { // магия которая понятна, но обьяснить трудно, так как метод взят с инета
+        char[] hexChars = new char[hash.length * 2];
+        for (int i = 0; i < hash.length; i++) {
+            int v = hash[i] & 0xFF;
+            hexChars[i * 2] = this.hexArray[v >>> 4];
+            hexChars[i * 2 + 1] = this.hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    void writeData(String login, String password) { // запись данных
+        try (FileWriter file = new FileWriter("data.txt", true); // запись в наш файл
+             BufferedWriter br = new BufferedWriter(file); // создание ридера
+             PrintWriter pw = new PrintWriter(br);) // создание райтера
+        {
+            pw.println(login + " - " + coder(password));  // сама запись в файл
+        }
+        catch(IOException ex){ // ну и на крайний случай мало ли
+            System.out.println(ex.getMessage());
+        }
+    }
+}

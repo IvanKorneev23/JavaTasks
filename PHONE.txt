@@ -1,0 +1,104 @@
+package com.company;
+
+
+public class Main {
+    public static void main(String[] args) {
+        com.company.Phone phone = new com.company.Phone("+2435324534", "Phone", 234); // создание экземпляра класса Phone
+        com.company.BabushkaPhone babushkaPhone = new com.company.BabushkaPhone(); // тоже создание экземпляра
+        com.company.SmartPhone smartPhone = new com.company.SmartPhone(); // тоже самое
+        phone.receivedCall("Ivan");  // вызов метода и передача в него значения
+        phone.getNumber(); // вызов метода
+        phone.display(); // вызов метода
+        babushkaPhone.callEnd(); // вызов метода
+        babushkaPhone.getInfo(); // вызов метода
+        babushkaPhone.setPrice(230);  // вызов метода и передача в него значения
+        babushkaPhone.getInfo(); // вызов метода
+        smartPhone.getInfo(); // вызов метода
+        smartPhone.setPrice(2136);  // вызов метода и передача в него значения
+        smartPhone.getInfo(); // вызов метода
+        smartPhone.getPhoto(); // вызов метода
+        smartPhone.getVideo(); // вызов метода
+    }
+}
+
+class Phone {
+    protected String serialNumber; // поле Serialnumber
+    protected String model; // тоже поле поле
+    protected int weight; // и это поле
+
+    Phone (String number, String model, int weight) { // конструктор, который принимает значения
+        this.serialNumber = number;
+        this.model = model;
+        this.weight = weight;
+    }
+
+    Phone () { // конструктор, который не принимает значения
+        this.serialNumber = "+810234981230";
+        this.model = "Nokia";
+        this.weight = 554;
+    }
+
+
+    void receivedCall(String name) {  // метод  который принмает значение
+        System.out.println("Вам позвонил " + name);
+    }
+
+    void getNumber() {// метод
+        System.out.println(this.serialNumber);
+    }
+
+    void display() {// метод
+        System.out.printf("Телефон: %s\nМодель: %s\nВес %d\n", this.serialNumber, this.model, this.weight);
+    }
+}
+
+class BabushkaPhone extends Phone {
+    private int price; // это поле, цена
+    private int count_call = 0; // и это поле, подсчет того, сколько раз звонили
+
+    void receivedCall(String name) {
+        int count = this.getCount_call();
+        this.setCount_call(count+1);
+        System.out.println("Звонок на бабушка телефон " + name);
+    }
+
+    void setPrice(int price){ // setter for price
+        this.price = price;
+    }
+    
+    void getInfo() { // getter info
+        System.out.printf("Цена: %d \nкол-во пропущеных: %d", price, getCount_call());
+    }
+
+    void callEnd() {  // method 
+        System.out.println("Звонок был завершен");
+    }
+
+    public int getCount_call() {  // getter for count_call
+        return count_call;
+    }
+
+    public void setCount_call(int count_call) { // setter for count call
+        this.count_call = count_call;
+    }
+}
+
+class SmartPhone extends Phone {
+    private int price; // поле
+
+    void setPrice(int price){ // сеттер
+        this.price = price;
+    }
+
+    void getInfo() { // получаем инфо
+        System.out.printf("Цена: %d", price);
+    }
+
+    void getPhoto() { // делаем фото
+        System.out.println("Фото");
+    }
+
+    void getVideo() { // снимаем видео
+        System.out.println("Видео");
+    }
+}
